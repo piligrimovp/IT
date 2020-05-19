@@ -94,7 +94,16 @@ namespace project2.Controllers
                     foreach (var cat in cats) {
                         categories_id.Add(cat.Id);
                     }
-                    products = db.Goods.Where(x => categories_id.Contains(x.CategoryId)).Select(x => x)
+                    products = db.Goods.Where(x => categories_id.Contains(x.CategoryId)).Select(x => new {
+                        x.Id,
+                        x.Name,
+                        x.Price,
+                        x.Discount,
+                        x.Description,
+                        x.Slug,
+                        media_link = db.Media.Where(y => y.GoodId == x.Id).Select(y => y.Link).FirstOrDefault(),
+                        category_slug = x.Category.Slug
+                    })
                         .Skip((paginate.page - 1) * paginate.count).Take(paginate.count).ToArray();
                     pages = Math.Ceiling(db.Goods.Where(x => categories_id.Contains(x.CategoryId)).Count() / (double)paginate.count);
                 }
@@ -134,7 +143,8 @@ namespace project2.Controllers
             public string link { get; set; }
         }
 
-        public string Breadcrumb(string slug = "", string product = "")
+        
+        private string Breadcrumb(string slug = "", string product = "")
         {
             List<BreadcrumbClass> breadcrumbs = new List<BreadcrumbClass>() { new BreadcrumbClass { name = "Каталог", link = "/catalog" } };
             using (var db = new PayplDB())
